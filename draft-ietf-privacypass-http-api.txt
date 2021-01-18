@@ -4,12 +4,12 @@
 
 Network Working Group                                          S. Valdez
 Internet-Draft                                                Google LLC
-Intended status: Informational                             16 March 2020
-Expires: 17 September 2020
+Intended status: Informational                           18 January 2021
+Expires: 22 July 2021
 
 
-                         Privacy Pass: HTTP API
-                    draft-svaldez-pp-http-api-latest
+                         Privacy Pass HTTP API
+                    draft-ietf-privacypass-http-api
 
 Abstract
 
@@ -32,11 +32,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 17 September 2020.
+   This Internet-Draft will expire on 22 July 2021.
 
 Copyright Notice
 
-   Copyright (c) 2020 IETF Trust and the persons identified as the
+   Copyright (c) 2021 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -48,37 +48,27 @@ Copyright Notice
    as described in Section 4.e of the Trust Legal Provisions and are
    provided without warranty as described in the Simplified BSD License.
 
-
-
-
-
-
-Valdez                  Expires 17 September 2020               [Page 1]
-
-Internet-Draft                 PP http api                    March 2020
-
-
 Table of Contents
 
-   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
-     1.1.  Terminology . . . . . . . . . . . . . . . . . . . . . . .   2
-     1.2.  Layout  . . . . . . . . . . . . . . . . . . . . . . . . .   3
-     1.3.  Requirements  . . . . . . . . . . . . . . . . . . . . . .   3
-   2.  Privacy Pass HTTP API Wrapping  . . . . . . . . . . . . . . .   3
-   3.  Server Configuration/Commitments  . . . . . . . . . . . . . .   4
-     3.1.  Commitment Registry . . . . . . . . . . . . . . . . . . .   4
-     3.2.  Server Configuration Retrieval  . . . . . . . . . . . . .   5
-   4.  Key Commitment Retrieval  . . . . . . . . . . . . . . . . . .   5
-   5.  Privacy Pass Issuance . . . . . . . . . . . . . . . . . . . .   6
-   6.  Privacy Pass Redemption . . . . . . . . . . . . . . . . . . .   8
-     6.1.  Generic Token Redemption  . . . . . . . . . . . . . . . .   8
-     6.2.  Direct Redemption . . . . . . . . . . . . . . . . . . . .   9
-     6.3.  Delegated Redemption  . . . . . . . . . . . . . . . . . .   9
-   7.  Security Considerations . . . . . . . . . . . . . . . . . . .  11
-   8.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  11
-     8.1.  Well-Known URI  . . . . . . . . . . . . . . . . . . . . .  11
-   9.  Normative References  . . . . . . . . . . . . . . . . . . . .  11
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  12
+   1.  Introduction
+     1.1.  Terminology
+     1.2.  Layout
+     1.3.  Requirements
+   2.  Privacy Pass HTTP API Wrapping
+   3.  Server key registry
+     3.1.  Key Registry
+     3.2.  Server Configuration Retrieval
+   4.  Key Commitment Retrieval
+   5.  Privacy Pass Issuance
+   6.  Privacy Pass Redemption
+     6.1.  Generic Token Redemption
+     6.2.  Direct Redemption
+     6.3.  Delegated Redemption
+   7.  Security Considerations
+   8.  IANA Considerations
+     8.1.  Well-Known URI
+   9.  Normative References
+   Author's Address
 
 1.  Introduction
 
@@ -93,29 +83,8 @@ Table of Contents
 
 1.1.  Terminology
 
-   The following terms are used throughout this document.
-
-   *  Server: A service that provides the server-side functionality
-      required by the protocol documented here (typically denoted S).
-
-   *  Client: An entity that seeks authorization from a server that
-      supports interactions in the Privacy Pass protocol (typically
-      denoted C).
-
-   *  Key: The secret key used by the Server for authorizing client
-      data.
-
-
-
-
-
-Valdez                  Expires 17 September 2020               [Page 2]
-
-Internet-Draft                 PP http api                    March 2020
-
-
-   *  Commitment: Alternative name for Server's public key corresponding
-      to the secret key that they hold.
+   We use the same definition of server and client that is used in
+   [draft-davidson-pp-protocol] and [draft-davidson-pp-architecture].
 
    We assume that all protocol messages are encoded into raw byte format
    before being sent.  We use the TLS presentation language [RFC8446] to
@@ -162,27 +131,19 @@ Internet-Draft                 PP http api                    March 2020
    be ignored, though may be used by the server to determine whether to
    fulfill the requested issuance/redemption.
 
+3.  Server key registry
 
+   A client SHOULD fetch a server's current public key information prior
+   to performing issuance and redemption.  This configuration is
+   accessible via a "CONFIG_ENDPOINT", either provided by the server or
+   by a global registry that provides consistency and anonymization
+   guarantees.
 
+3.1.  Key Registry
 
-Valdez                  Expires 17 September 2020               [Page 3]
-
-Internet-Draft                 PP http api                    March 2020
-
-
-3.  Server Configuration/Commitments
-
-   A client SHOULD fetch the server configuration and current key
-   commitments prior to performing issuance and redemption.  This
-   configuration is accessible via a "CONFIG_ENDPOINT", either provided
-   by the server or by a global registry that provides consistency and
-   anonymization guarantees.
-
-3.1.  Commitment Registry
-
-   To ensure that a server isn't providing different views of their key
-   material/commitments to different users, servers are expected to
-   write their commitments to a verifiable data structure.
+   To ensure that a server isn't providing different views of their
+   public key material to different users, servers are expected to write
+   their commitments to a verifiable data structure.
 
    Using a verifiable log-backed map ([verifiable-data-structures]), the
    server can publish their commitments to the log in a way that clients
@@ -208,7 +169,8 @@ Internet-Draft                 PP http api                    March 2020
    The addition to the log is made via a signed message to the log
    operator, which verifies the authenticity against a public key
    associated with that server origin (either via the Web PKI or a out-
-   of-band key).
+   of-band key).  The signature should be computed under a long-term
+   signing key that is associated with the server identity.
 
    The server SHOULD then store an inclusion proof of the current key
    commitment so that it can present it when delivering the key
@@ -217,14 +179,11 @@ Internet-Draft                 PP http api                    March 2020
    configuration lists/etc).
 
    The client can then perform a request for the key commitment against
-   either the global registry or the server as described Section 4.
-
-
-
-Valdez                  Expires 17 September 2020               [Page 4]
-
-Internet-Draft                 PP http api                    March 2020
-
+   either the global registry or the server as described in Section 4.
+   Note that the signature should be verified by the client to ensure
+   that the key material is owned by the server.  This requires that the
+   client know the public verification key that is associated with the
+   server.
 
    To avoid user segregation as a result of server configuration/
    commitment rotation, the log operator SHOULD enforce limits on how
@@ -275,13 +234,6 @@ Internet-Draft                 PP http api                    March 2020
    Inputs: - "server_origin": The origin to retrieve a key commitment
    for.
 
-
-
-Valdez                  Expires 17 September 2020               [Page 5]
-
-Internet-Draft                 PP http api                    March 2020
-
-
    No outputs.
 
    1.  The client fetches the configuration state "server_id",
@@ -324,30 +276,25 @@ Internet-Draft                 PP http api                    March 2020
        as new commitments should be fetched for each independent
        issuance and redemption request.  The client SHOULD verify the
        "inclusion_proofs" to confirm that the key commitment has been
-       submitted to a trusted registry.
+       submitted to a trusted registry.  Once the client receives the
+       "ciphersuite" for the server, it should implement all Privacy
+       Pass API functions (as detailed in [draft-davidson-pp-protocol])
+       using this ciphersuite.
 
 5.  Privacy Pass Issuance
 
    Inputs: - "server_origin": The origin to request token issuance from.
    - "count": The number of tokens to request issuance for.
 
-
-
-Valdez                  Expires 17 September 2020               [Page 6]
-
-Internet-Draft                 PP http api                    March 2020
-
-
    Outputs: - "tokens": A list of tokens that have been signed via the
    Privacy Pass protocol.
 
    1.  When a client wants to request tokens from a server, it should
-       first fetch a key commitment from the issuer via the process
+       first fetch a key commitment from the server via the process
        described in Section 4 and keep the result as "commitment".
 
-   2.  The client should then call the "CLIENT_ISSUE_GEN" interface
-       requesting "count" tokens storing the resulting "c_data",
-       "i_data", "g_data".
+   2.  The client should then call the "Generate" function requesting
+       "count" tokens storing the resulting "input" data.
 
    3.  The client then makes a POST request to <"server_origin">/.well-
        known/privacy-pass with a message of type "request-issuance" and
@@ -357,42 +304,29 @@ Internet-Draft                 PP http api                    March 2020
 
    struct {
        IssuanceType type = 0;
-       opaque i_data<0..2^16-1> = i_data;
+       opaque msg<0..2^16-1> = input.msg;
    }
 
-   1.  The server, upon receipt of the "request" should call the
-       "SERVER_ISSUE" interface with the value of "i_data" with a result
-       of "server_issue_resp".
+   1.  The server, upon receipt of the "request" should call the "Issue"
+       function with the "public_key", "secret_key" and the value of
+       "msg" with a result of "resp".
 
    2.  The server should then respond to the POST request with a message
        of type "issue" and a body of:
 
    struct {
        IssuanceType type = request.type;
-       uint16 ciphersuite = server_issue_resp.ciphersuite;
-       opaque evals<1..2^16-1> = server_issue_resp.evals;
-       opaque proof<1..2^16-1> = server_issue_resp.proof;
+       IssuanceResp resp = resp;
    }
 
-   1.  The client should then should call the "CLIENT_ISSUE_FINISH"
-       interface with the resulting "ciphersuite", ```evals","proof",
-       and stored"g_data"to extract a list of"tokens``.
+   1.  The client should then should call the "Process" function with
+       the "public_key", stored "inputs" and resulting "resp", to
+       extract a list of "redemption_tokens".
 
    2.  The client should store the "public_key" associated with these
-       tokens and the elements of "tokens" under storage partitioned by
-       the "server_origin", accessible only via the Privacy Pass API.
-
-
-
-
-
-
-
-
-Valdez                  Expires 17 September 2020               [Page 7]
-
-Internet-Draft                 PP http api                    March 2020
-
+       tokens and the elements of "redemption_tokens" under storage
+       partitioned by the "server_origin", accessible only via the
+       Privacy Pass API.
 
 6.  Privacy Pass Redemption
 
@@ -406,15 +340,15 @@ Internet-Draft                 PP http api                    March 2020
 
    Inputs: - "server_id": The server ID to redeem a token against. -
    "ciphersuite": The ciphersuite for this token. - "public_key": The
-   public key associated with this token. - "token": A Privacy Pass
-   token. - "additional_data": Additional data to bind to this token
+   public key associated with this token. - "redemption_token": A
+   Privacy Pass token. - "info": Additional data to bind to this token
    redemption.
 
    Outputs: - "result": The result of the redemption from the server.
 
-   1.  The client should call the "CLIENT_REDEEM" interface with
-       "server_id", "ciphersuite", "public_key", "token" and auxilary
-       data of "additional_data" storing the resulting "data" and "tag".
+   1.  The client should call the "Redeem" function with
+       "redemption_token" and additional data of "info" storing the
+       resulting "data" and "tag".
 
    2.  The client makes a POST request to <"server_origin">/.well-known/
        privacy-pass with a message of type "token-redemption" and a body
@@ -424,31 +358,23 @@ Internet-Draft                 PP http api                    March 2020
        opaque server_id<1..2^16-1> = server_id;
        opaque data<1..2^16-1> = data;
        opaque tag<1..2^16-1> = tag;
-       opaque aux<1..2^16-1> = additional_data;
+       opaque info<1..2^16-1> = info;
    }
 
-   1.  The server, upon receipt of "request" should call the
-       "SERVER_REDEEM" interface with the "data", "tag", "aux" storing
-       the resulting "resp".
+   1.  The server, upon receipt of "request" should call the "Verify"
+       interface with "public_key", "secret_key" and the received
+       "data", "tag", "info" storing the resulting "resp".
 
    2.  The server should then respond to the POST request with a message
        of type "redemption-result" and a signed body of:
 
    struct {
-       opaque aux<1..2^16-1> = aux;
+       opaque info<1..2^16-1> = info;
        uint8 result = resp;
-       opaque signature<1..2^16-1>; // signature of aux and result using
-       the server's verification key.
+       // signature of info and result using
+       // the server's verification key.
+       opaque signature<1..2^16-1>;
    }
-
-
-
-
-
-Valdez                  Expires 17 September 2020               [Page 8]
-
-Internet-Draft                 PP http api                    March 2020
-
 
    1.  The client upon receipt of this message should verify the
        "signature" using the "verification_key" from the configuration
@@ -462,11 +388,12 @@ Internet-Draft                 PP http api                    March 2020
    request.
 
    1.  When a client wants to redeem tokens for a server, it should
-       first fetch a key commitment from the issuer via the process
+       first fetch a key commitment from the server via the process
        described in Section 4 and keep the result as "commitment".
 
    2.  The client should then look up the storage partition associated
-       with "server_origin" and fetch a "token" and "public_key".
+       with "server_origin" and fetch a "redemption_token" and
+       "public_key".
 
    3.  The client should verify that the "public_key" is in the current
        "commitment".  If not, it should discard the token and fail the
@@ -482,7 +409,7 @@ Internet-Draft                 PP http api                    March 2020
        opaque server_id<1..2^16-1> = server_id;
        uint16 ciphersuite = ciphersuite;
        opaque public_key<1..2^16-1> = public_key;
-       opaque token<1..2^16-1> = token;
+       RedemptionToken token<1..2^16-1> = redemption_token;
        opaque additional_data<1..2^16-1> = additional_data;
    }
 
@@ -497,28 +424,20 @@ Internet-Draft                 PP http api                    March 2020
    "additional_data": Additional data to bind to this redemption
    request.
 
-
-
-
-
-Valdez                  Expires 17 September 2020               [Page 9]
-
-Internet-Draft                 PP http api                    March 2020
-
-
    1.  When a client wants to redeem tokens for a server, it should
-       first fetch a key commitment from the issuer via the process
+       first fetch a key commitment from the server via the process
        described in Section 4 and keep the result as "commitment".
 
    2.  The client should then look up the storage partition associated
-       with "server_origin" and fetch a "token" and "public_key".
+       with "server_origin" and fetch a "redemption_token" and
+       "public_key".
 
    3.  The client should verify that the "public_key" is in the current
        "commitment".  If not, it should discard the token and fail the
        redemption attempt.
 
-   4.  The client constructs a bytestring "aux" made up of the "target",
-       the current "timestamp", and "additional_data":
+   4.  The client constructs a bytestring "info" made up of the
+       "target", the current "timestamp", and "additional_data":
 
    struct {
        opaque target<1..2^16-1>;
@@ -545,22 +464,12 @@ Internet-Draft                 PP http api                    March 2020
    }
 
    At this point, the "target" can verify the integrity of
-   "signed_redemption.aux" based on the values of "target", "timestamp",
-   and "additional_data" and verify the signature of the redemption
-   result by querying the current configuration of the Privacy Pass
-   server.  The inclusion of "target" and "timestamp" proves that the
-   server attested to the validity of the token in relation to this
-   particular request.
-
-
-
-
-
-
-Valdez                  Expires 17 September 2020              [Page 10]
-
-Internet-Draft                 PP http api                    March 2020
-
+   "signed_redemption.info" based on the values of "target",
+   "timestamp", and "additional_data" and verify the signature of the
+   redemption result by querying the current configuration of the
+   Privacy Pass server.  The inclusion of "target" and "timestamp"
+   proves that the server attested to the validity of the token in
+   relation to this particular request.
 
 7.  Security Considerations
 
@@ -610,63 +519,9 @@ Internet-Draft                 PP http api                    March 2020
               <https://github.com/google/trillian/blob/master/docs/
               papers/VerifiableDataStructures.pdf>.
 
-
-
-
-Valdez                  Expires 17 September 2020              [Page 11]
-
-Internet-Draft                 PP http api                    March 2020
-
-
 Author's Address
 
    Steven Valdez
    Google LLC
 
    Email: svaldez@chromium.org
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Valdez                  Expires 17 September 2020              [Page 12]
